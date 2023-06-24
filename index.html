@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Perfect Pizza</title>
+  <link rel="stylesheet" href="style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script defer src="script.js"></script> <!-- Include the script file -->
+</head>
+
+<body>
+  <h1><centre>Perfect Pizza(Collections)</centre></h1>
+
+  
+
+  <style>
+    .pizza-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+
+  <div class="order_box" x-data="cart()">
+    <div>
+      <h2>Shopping cart</h2>
+      <ul class="pizza-list">
+        <template x-for="(pizza, index) in pizzas" :key="index">
+          <li class="pizza-item">
+            <span x-text="pizza.name"></span>
+            <button x-on:click="incrementQuantity(pizza)">+</button>
+            <span x-text="pizza.quantity"></span>
+            <button x-on:click="decrementQuantity(pizza)">-</button>
+            <span x-text="formatPrice(pizza.price)"></span>
+            <button x-on:click="removePizza(pizza)">Remove</button>
+          </li>
+        </template>
+      </ul>
+      <div>Total Cost: <span x-text="formatPrice(totalCost)"></span></div>
+      <button x-on:click="checkout" :disabled="totalPizzas.length === 0 && totalCost === 0">Checkout</button>
+    </div>
+
+    <div>
+      <h2>Select Pizza Size</h2>
+      <template x-for="(pizza, index) in pizzas" :key="index">
+        <button x-on:click="addToCart(pizza)">
+          Add <span x-text="pizza.name"></span> Pizza
+        </button>
+      </template>
+    </div>
+    
+
+    <div class="payment-modal" x-show="showPaymentModal">
+      <h3>Enter Payment Amount</h3>
+      <input type="number" x-model="paymentAmount">
+      <button x-on:click="processPayment">Submit</button>
+    </div>
+
+    <div x-show="showMessage" x-text="message" class="message"></div>
+
+    <script>
+      function cart() {
+        return {
+          pizzas: [
+            { name: 'Small', quantity: 0, price: 49.00 },
+            { name: 'Medium', quantity: 0, price: 89.00 },
+            { name: 'Large', quantity: 0, price: 129.00 },
+          ],
+          totalPizzas: [],
+          totalCost: 0,
+          showPaymentModal: false,
+          paymentAmount: 0,
+          showMessage: false,
+          message: "",
+
+          formatPrice(price) {
+            return `R${price.toFixed(2)}`;
+          },
+
+          addToCart(pizza) {
+            const existingPizza = this.totalPizzas.find(item => item.name === pizza.name);
+            if (existingPizza) {
+              existingPizza.quantity++;
+            } else {
+              this.totalPizzas.push({ ...pizza, quantity: 1 });
+            }
+            pizza.quantity++;
+            this.calculateTotalCost();
+          },
+
+          removePizza(pizza) {
+            const index = this.totalPizzas.findIndex(item => item.name === pizza.name);
+            if (index > -1) {
+              this.totalPizzas.splice(index, 1);
+              pizza.quantity = 0;
+              this.calculateTotalCost();
+            }
+          },
+
+          decrementQuantity(pizza) {
+            if (pizza.quantity > 0) {
+              pizza.quantity--;
+              const existingPizza = this.totalPizzas.find(item => item.name === pizza.name);
+              if (existingPizza) {
+                existingPizza.quantity--;
+                if (existingPizza.quantity === 0) {
+                  const index = this.totalPizzas.findIndex(item => item.name === pizza.name);
+                  this.totalPizzas.splice(index, 1);
+                }
+              }
+              this.calculateTotalCost();
+            }
+          },
+
+          incrementQuantity(pizza) {
+            pizza.quantity++;
+            const existingPizza = this.totalPizzas.find(item => item.name === pizza.name);
+            if (existingPizza) {
+              existingPizza.quantity++;
+            } else {
+              this.totalPizzas.push({ ...pizza, quantity: 1 });
+            }
+            this.calculateTotalCost();
+          },
+
+          calculateTotalCost() {
+            this.totalCost = this.totalPizzas.reduce((sum, pizza) => {
+              return sum + (pizza.price * pizza.quantity);
+            }, 0);
+          },
+
+          checkout() {
+            if (this.totalCost === 0) {
+              this.showMessage = true;
+              this.message = "Sorry, your cart is empty!";
+              setTimeout(() => {
+                this.showMessage = false;
+                this.message = "";
+              }, 3000);
+            } else {
+              this.showPaymentModal = true;
+            }
+          },
+
+          processPayment() {
+            if (this.paymentAmount >= this.totalCost) {
+              this.showMessage = true;
+              this.message = "Enjoy your pizzas!";
+              this.totalPizzas = [];
+              this.totalCost = 0;
+              this.showPaymentModal = false;
+              setTimeout(() => {
+                this.showMessage = false;
+                this.message = "";
+              }, 3000);
+            } else {
+              this.showMessage = true;
+              this.message = "Sorry, that is not enough money!";
+              this.showPaymentModal = false;
+              setTimeout(() => {
+                this.showMessage = false;
+                this.message = "";
+              }, 3000);
+            }
+          },
+        };
+      }
+    </script>
+  </div>
+
+  <div class="pizzas">
+    <div class="pizza small_pizza">
+      <h2>Small Pizza</h2>
+      <img src="https://www.emoji.co.uk/files/phantom-open-emojis/food-drink-phantom/12567-slice-of-pizza.png" width="100">
+      <h3>R49.00</h3>
+      <div>
+        Our small pizza is available in three flavors: Chicken and mushrooms, Bacon and cheese, and Vegan.
+      </div>
+    </div>
+
+    <div class="pizza medium_pizza">
+      <h2>Medium Pizza</h2>
+      <img src="https://www.emoji.co.uk/files/phantom-open-emojis/food-drink-phantom/12567-slice-of-pizza.png" width="125">
+
+      <h3>R89.00</h3>
+      <div>
+        This is one of our mouthwatering pizzas that comes at a bigger size and has a variety of flavors and toppings such as Avocado, Parmesan cheese, and Pineapple.
+      </div>
+    </div>
+
+    <div class="pizza large_pizza">
+      <h2>Large Pizza</h2>
+      <img src="https://www.emoji.co.uk/files/phantom-open-emojis/food-drink-phantom/12567-slice-of-pizza.png" width="150">
+      <h3>R129.00</h3>
+      <div>
+        This is our biggest-sized pizza, it can be shared with friends and family. Additionally, there are a number of flavors that are offered such as Pepperoni, Sweet chili chicken, and Hawaiian.
+      </div>
+    </div>
+  </div>
+
+  <div class="pizza contact_us">
+    <h2>Contact details</h2>
+    Contact us @: 000 000 0000 orders@perfectpizza.co.za
+    Address: 50 Kingsway Ave. Auckland Park Johannesburg
+  </div>
+
+</body>
+
+</html>
